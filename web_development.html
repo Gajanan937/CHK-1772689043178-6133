@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Online Compliance & Document Workflow Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --sidebar-bg: #0f172a;
+    --sidebar-hover: #1e293b;
+    --sidebar-active: #1d4ed8;
+    --accent: #3b82f6;
+    --accent-dark: #1d4ed8;
+    --accent-light: #eff6ff;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --orange: #f97316;
+    --purple: #8b5cf6;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    --sidebar-width: 260px;
+    --header-height: 64px;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: var(--sidebar-width); min-height: 100vh; background: var(--sidebar-bg);
+    display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 100;
+    transition: transform .3s ease;
+  }
+  .sidebar-logo {
+    padding: 20px 20px 16px; border-bottom: 1px solid rgba(255,255,255,.07);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .logo-icon {
+    width: 40px; height: 40px; background: linear-gradient(135deg,#3b82f6,#1d4ed8);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .logo-text { color: #fff; }
+  .logo-text strong { display: block; font-size: 13px; font-weight: 700; line-height: 1.2; }
+  .logo-text span { font-size: 10px; color: #94a3b8; font-weight: 400; }
+
+  .sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+  .nav-section-label {
+    font-size: 10px; font-weight: 600; color: #475569; text-transform: uppercase;
+    letter-spacing: .08em; padding: 12px 10px 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 13.5px;
+    font-weight: 500; transition: all .2s; margin-bottom: 2px; position: relative;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: var(--sidebar-hover); color: #e2e8f0; }
+  .nav-item.active { background: rgba(59,130,246,.15); color: #60a5fa; }
+  .nav-item.active::before {
+    content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 60%; background: #3b82f6; border-radius: 0 3px 3px 0;
+  }
+  .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto; background: var(--danger); color: #fff; font-size: 10px;
+    font-weight: 700; padding: 2px 6px; border-radius: 99px; min-width: 18px; text-align: center;
+  }
+  .nav-badge.blue { background: var(--accent); }
+
+  .sidebar-footer {
+    padding: 14px; border-top: 1px solid rgba(255,255,255,.07);
+  }
+  .user-card {
+    display: flex; align-items: center; gap: 10px; padding: 10px;
+    background: rgba(255,255,255,.05); border-radius: 10px; cursor: pointer;
+    transition: background .2s;
+  }
+  .user-card:hover { background: rgba(255,255,255,.09); }
+  .user-avatar {
+    width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .user-info { flex: 1; min-width: 0; }
+  .user-info strong { display: block; font-size: 12.5px; color: #e2e8f0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-info span { font-size: 11px; color: #64748b; }
+
+  /* ── MAIN ── */
+  #main { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── HEADER ── */
+  #header {
+    height: var(--header-height); background: var(--card); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px; gap: 16px; position: sticky; top: 0; z-index: 50;
+  }
+  .hamburger { display: none; background: none; border: none; cursor: pointer; font-size: 20px; color: var(--text-muted); }
+  .header-title { font-size: 17px; font-weight: 700; flex: 1; }
+  .header-title span { font-size: 12px; font-weight: 400; color: var(--text-muted); display: block; }
+
+  .role-switcher {
+    display: flex; align-items: center; gap: 8px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer;
+    font-size: 12.5px; font-weight: 500; color: var(--text); transition: all .2s;
+  }
+  .role-switcher:hover { border-color: var(--accent); }
+  .role-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .notif-btn {
+    position: relative; background: none; border: none; cursor: pointer;
+    width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; color: var(--text-muted); transition: all .2s;
+  }
+  .notif-btn:hover { background: var(--bg); color: var(--text); }
+  .notif-count {
+    position: absolute; top: 4px; right: 4px; background: var(--danger); color: #fff;
+    font-size: 9px; font-weight: 700; width: 16px; height: 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; border: 2px solid var(--card);
+  }
+
+  /* ── CONTENT ── */
+  #content { flex: 1; padding: 24px; overflow-y: auto; }
+  .page { display: none; animation: fadeIn .3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── PAGE HEADER ── */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .page-header h1 { font-size: 22px; font-weight: 800; }
+  .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px;
+    border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: none; transition: all .2s; text-decoration: none; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,.35); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { background: #059669; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+  .btn-warning { background: var(--warning); color: #fff; }
+  .btn-warning:hover { background: #d97706; }
+  .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-icon { padding: 8px; border-radius: 8px; }
+
+  /* ── CARDS ── */
+  .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
+  .card-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-header h3 { font-size: 15px; font-weight: 700; }
+  .card-body { padding: 20px; }
+
+  /* ── STAT CARDS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px;
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 16px; transition: transform .2s, box-shadow .2s;
+    position: relative; overflow: hidden;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .stat-card.blue::before { background: var(--accent); }
+  .stat-card.green::before { background: var(--success); }
+  .stat-card.yellow::before { background: var(--warning); }
+  .stat-card.red::before { background: var(--danger); }
+  .stat-card.purple::before { background: var(--purple); }
+  .stat-icon {
+    width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center;
+    justify-content: center; font-size: 22px; flex-shrink: 0;
+  }
+  .stat-icon.blue { background: #eff6ff; }
+  .stat-icon.green { background: #ecfdf5; }
+  .stat-icon.yellow { background: #fffbeb; }
+  .stat-icon.red { background: #fef2f2; }
+  .stat-icon.purple { background: #f5f3ff; }
+  .stat-info h2 { font-size: 28px; font-weight: 800; line-height: 1; }
+  .stat-info p { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+  .stat-change { font-size: 11px; margin-top: 4px; font-weight: 600; }
+  .stat-change.up { color: var(--success); }
+  .stat-change.down { color: var(--danger); }
+
+  /* ── GRID LAYOUTS ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  @media(max-width:1100px) { .grid-2 { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: 1fr 1fr; } }
+  @media(max-width:700px) { .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ── WORKFLOW PIPELINE ── */
+  .workflow-pipeline {
+    display: flex; align-items: center; gap: 0; overflow-x: auto; padding: 20px;
+  }
+  .wf-step {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    min-width: 110px; position: relative;
+  }
+  .wf-step:not(:last-child)::after {
+    content: ''; position: absolute; top: 22px; left: calc(50% + 22px);
+    width: calc(100% - 44px); height: 2px; background: var(--border);
+  }
+  .wf-step.done:not(:last-child)::after { background: var(--success); }
+  .wf-step.active:not(:last-child)::after { background: linear-gradient(90deg, var(--accent), var(--border)); }
+  .wf-circle {
+    width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; border: 2px solid var(--border);
+    background: var(--card); transition: all .3s; position: relative; z-index: 1;
+  }
+  .wf-step.done .wf-circle { background: var(--success); border-color: var(--success); color: #fff; }
+  .wf-step.active .wf-circle {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+    box-shadow: 0 0 0 6px rgba(59,130,246,.15);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 6px rgba(59,130,246,.15); } 50% { box-shadow: 0 0 0 10px rgba(59,130,246,.05); } }
+  .wf-label { font-size: 11.5px; font-weight: 600; color: var(--text-muted); text-align: center; }
+  .wf-step.done .wf-label { color: var(--success); }
+  .wf-step.active .wf-label { color: var(--accent); }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px;
+    border-radius: 99px; font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .badge-draft { background: #f1f5f9; color: #64748b; }
+  .badge-draft::before { background: #94a3b8; }
+  .badge-submitted { background: #eff6ff; color: #1d4ed8; }
+  .badge-submitted::before { background: #3b82f6; }
+  .badge-review { background: #fffbeb; color: #92400e; }
+  .badge-review::before { background: #f59e0b; }
+  .badge-approved { background: #ecfdf5; color: #065f46; }
+  .badge-approved::before { background: #10b981; }
+  .badge-rejected { background: #fef2f2; color: #991b1b; }
+  .badge-rejected::before { background: #ef4444; }
+  .badge-revision { background: #fff7ed; color: #9a3412; }
+  .badge-revision::before { background: #f97316; }
+  .badge-pending { background: #f5f3ff; color: #5b21b6; }
+  .badge-pending::before { background: #8b5cf6; }
+
+  .priority-badge { padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .priority-low { background: #f1f5f9; color: #64748b; }
+  .priority-medium { background: #eff6ff; color: #1d4ed8; }
+  .priority-high { background: #fff7ed; color: #c2410c; }
+  .priority-urgent { background: #fef2f2; color: #991b1b; }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    padding: 11px 14px; text-align: left; font-size: 11px; font-weight: 700;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em;
+    background: #f8fafc; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid #f1f5f9; transition: background .15s; }
+  tbody tr:hover { background: #f8fafc; }
+  tbody td { padding: 12px 14px; vertical-align: middle; }
+  tbody tr:last-child { border-bottom: none; }
+
+  /* ── FILTER BAR ── */
+  .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .search-box {
+    display: flex; align-items: center; gap: 8px; background: var(--card);
+    border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 12px;
+    flex: 1; min-width: 200px; transition: border-color .2s;
+  }
+  .search-box:focus-within { border-color: var(--accent); }
+  .search-box input { border: none; outline: none; font-size: 13px; background: transparent; width: 100%; font-family: inherit; }
+  .filter-select {
+    border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 12px;
+    font-size: 13px; background: var(--card); cursor: pointer; outline: none;
+    font-family: inherit; color: var(--text); transition: border-color .2s;
+  }
+  .filter-select:focus { border-color: var(--accent); }
+
+  /* ── FORM ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .form-grid.full { grid-template-columns: 1fr; }
+  @media(max-width:640px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.span2 { grid-column: span 2; }
+  @media(max-width:640px) { .form-group.span2 { grid-column: span 1; } }
+  .form-label { font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .form-label .req { color: var(--danger); margin-left: 2px; }
+  .form-input, .form-select, .form-textarea {
+    border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 13px;
+    font-size: 13.5px; font-family: inherit; color: var(--text); background: var(--card);
+    outline: none; transition: border-color .2s, box-shadow .2s; width: 100%;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+  }
+  .form-textarea { resize: vertical; min-height: 100px; }
+  .form-hint { font-size: 11.5px; color: var(--text-muted); }
+
+  /* ── UPLOAD ZONE ── */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: 10px; padding: 32px 20px;
+    text-align: center; cursor: pointer; transition: all .2s; background: #fafbfc;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: var(--accent-light); }
+  .upload-zone .upload-icon { font-size: 36px; margin-bottom: 10px; }
+  .upload-zone p { font-size: 13.5px; color: var(--text-muted); }
+  .upload-zone strong { color: var(--accent); }
+  .upload-zone input[type=file] { display: none; }
+  .uploaded-file {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; margin-top: 10px;
+  }
+  .uploaded-file .file-icon { font-size: 20px; }
+  .uploaded-file .file-name { font-size: 13px; font-weight: 500; flex: 1; }
+  .uploaded-file .file-size { font-size: 11px; color: var(--text-muted); }
+  .uploaded-file .remove-file { cursor: pointer; color: var(--danger); font-size: 16px; }
+
+  /* ── APPROVAL CARDS ── */
+  .approval-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; transition: box-shadow .2s; margin-bottom: 14px;
+  }
+  .approval-card:hover { box-shadow: var(--shadow-lg); }
+  .approval-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .approval-card-title { font-size: 15px; font-weight: 700; }
+  .approval-card-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .approval-card-meta span { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+  .approval-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px; }
+  .approval-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ── TIMELINE ── */
+  .timeline { padding: 4px 0; }
+  .tl-item { display: flex; gap: 12px; padding-bottom: 18px; position: relative; }
+  .tl-item:not(:last-child)::before {
+    content: ''; position: absolute; left: 15px; top: 32px; bottom: 0;
+    width: 2px; background: var(--border);
+  }
+  .tl-dot {
+    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 14px; flex-shrink: 0; border: 2px solid var(--border);
+    background: var(--card);
+  }
+  .tl-dot.green { background: #ecfdf5; border-color: var(--success); }
+  .tl-dot.blue { background: #eff6ff; border-color: var(--accent); }
+  .tl-dot.yellow { background: #fffbeb; border-color: var(--warning); }
+  .tl-dot.red { background: #fef2f2; border-color: var(--danger); }
+  .tl-dot.gray { background: #f8fafc; border-color: var(--border); }
+  .tl-content { flex: 1; }
+  .tl-content strong { font-size: 13px; font-weight: 600; }
+  .tl-content p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .tl-time { font-size: 11px; color: var(--text-light); margin-top: 3px; }
+
+  /* ── NOTIFICATIONS ── */
+  .notif-item {
+    display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border);
+    transition: background .15s; cursor: pointer;
+  }
+  .notif-item:hover { background: #f8fafc; }
+  .notif-item.unread { background: #eff6ff; }
+  .notif-item.unread:hover { background: #dbeafe; }
+  .notif-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+  .notif-body { flex: 1; }
+  .notif-body strong { font-size: 13px; font-weight: 600; }
+  .notif-body p { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
+  .notif-time { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+  .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 6px; }
+
+  /* ── AUDIT LOG ── */
+  .action-tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .action-submit { background: #eff6ff; color: #1d4ed8; }
+  .action-approve { background: #ecfdf5; color: #065f46; }
+  .action-reject { background: #fef2f2; color: #991b1b; }
+  .action-review { background: #fffbeb; color: #92400e; }
+  .action-upload { background: #f5f3ff; color: #5b21b6; }
+  .action-login { background: #f0fdf4; color: #166534; }
+  .action-revision { background: #fff7ed; color: #9a3412; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--card); border-radius: 16px; width: 100%; max-width: 680px;
+    max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    transform: scale(.95) translateY(10px); transition: transform .25s;
+  }
+  .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+  .modal-header {
+    padding: 20px 24px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--card); z-index: 1;
+  }
+  .modal-header h2 { font-size: 17px; font-weight: 700; }
+  .modal-close { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--text-muted); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+  .modal-close:hover { background: var(--bg); }
+  .modal-body { padding: 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* ── TOAST ── */
+  #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 10px; }
+  .toast {
+    display: flex; align-items: center; gap: 10px; padding: 13px 18px;
+    background: var(--card); border-radius: 10px; box-shadow: var(--shadow-lg);
+    border-left: 4px solid var(--accent); font-size: 13.5px; font-weight: 500;
+    min-width: 280px; max-width: 380px; animation: slideIn .3s ease;
+  }
+  .toast.success { border-color: var(--success); }
+  .toast.error { border-color: var(--danger); }
+  .toast.warning { border-color: var(--warning); }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+
+  /* ── ROLE MODAL ── */
+  .role-option {
+    display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+    border: 2px solid var(--border); border-radius: 10px; cursor: pointer;
+    transition: all .2s; margin-bottom: 10px;
+  }
+  .role-option:hover { border-color: var(--accent); background: var(--accent-light); }
+  .role-option.selected { border-color: var(--accent); background: var(--accent-light); }
+  .role-option-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .role-option-info strong { display: block; font-size: 14px; font-weight: 700; }
+  .role-option-info span { font-size: 12px; color: var(--text-muted); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; transition: width .6s ease; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state { text-align: center; padding: 48px 20px; }
+  .empty-state .empty-icon { font-size: 52px; margin-bottom: 14px; opacity: .5; }
+  .empty-state h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .empty-state p { font-size: 13px; color: var(--text-muted); }
+
+  /* ── USER MANAGEMENT ── */
+  .user-row-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
+  .status-active { color: var(--success); font-weight: 600; font-size: 12px; }
+  .status-inactive { color: var(--text-muted); font-weight: 600; font-size: 12px; }
+
+  /* ── CHECKLIST ── */
+  .checklist-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .checklist-item:last-child { border-bottom: none; }
+  .check-icon { font-size: 16px; }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:768px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #main { margin-left: 0; }
+    .hamburger { display: flex; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    #content { padding: 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.span2 { grid-column: span 1; }
+  }
+  @media(max-width:480px) {
+    .stats-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── MISC ── */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .text-muted { color: var(--text-muted); }
+  .text-sm { font-size: 12px; }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .mt-1 { margin-top: 4px; }
+  .mt-2 { margin-top: 8px; }
+  .mt-3 { margin-top: 12px; }
+  .mb-3 { margin-bottom: 12px; }
+  .mb-4 { margin-bottom: 16px; }
+  .fw-600 { font-weight: 600; }
+  .overlay-bg { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 99; display: none; }
+  .overlay-bg.show { display: block; }
+
+  /* ── DONUT CHART ── */
+  .donut-wrap { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .donut { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+  .donut svg { transform: rotate(-90deg); }
+  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .donut-center strong { font-size: 22px; font-weight: 800; }
+  .donut-center span { font-size: 10px; color: var(--text-muted); font-weight: 500; }
+  .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── COMMENT BOX ── */
+  .comment-box { background: #f8fafc; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .comment-box .comment-author { font-size: 12.5px; font-weight: 600; }
+  .comment-box .comment-text { font-size: 13px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+  .comment-box .comment-time { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+  .tab-btn { padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; background: none; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .2s; }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-btn:hover { color: var(--text); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar Overlay (mobile) -->
+<div class="overlay-bg" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ── SIDEBAR ── -->
+<aside id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">📋</div>
+    <div class="logo-text">
+      <strong>ComplianceFlow</strong>
+      <span>Document Management</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav" id="sidebarNav">
+    <!-- Populated by JS -->
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-card" onclick="openRoleModal()">
+      <div class="user-avatar" id="sidebarAvatar" style="background:#3b82f6">S</div>
+      <div class="user-info">
+        <strong id="sidebarUserName">Alex Johnson</strong>
+        <span id="sidebarUserRole">Student</span>
+      </div>
+      <span style="color:#64748b;font-size:14px">⚙️</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div id="main">
+  <!-- Header -->
+  <header id="header">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <div class="header-title">
+      <span id="headerSubtitle">Welcome back, Alex</span>
+      <span id="headerPageName" style="font-size:17px;font-weight:700;color:var(--text)">Dashboard</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="role-switcher" onclick="openRoleModal()">
+        <div class="role-dot" id="roleDot" style="background:#3b82f6"></div>
+        <span id="roleLabel">Student</span>
+        <span style="color:var(--text-muted);font-size:11px">▼</span>
+      </div>
+      <button class="notif-btn" onclick="navigate('notifications')">
+        🔔
+        <span class="notif-count" id="notifCount">5</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main id="content">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <h1>📊 Dashboard</h1>
+          <p>Overview of your compliance workflow activity</p>
+        </div>
+        <button class="btn btn-primary" onclick="navigate('submit')">➕ Submit Document</button>
+      </div>
+
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <div class="grid-2" style="margin-bottom:20px">
+        <!-- Workflow Pipeline -->
+        <div class="card">
+          <div class="card-header">
+            <h3>🔄 Workflow Pipeline</h3>
+            <span class="badge badge-review">Live</span>
+          </div>
+          <div class="workflow-pipeline" id="workflowPipeline"></div>
+        </div>
+        <!-- Donut Chart -->
+        <div class="card">
+          <div class="card-header">
+            <h3>📈 Document Status</h3>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              <div class="donut">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#f1f5f9" stroke-width="16"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#10b981" stroke-width="16" stroke-dasharray="125 189" stroke-dashoffset="0"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#f59e0b" stroke-width="16" stroke-dasharray="63 251" stroke-dashoffset="-125"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#ef4444" stroke-width="16" stroke-dasharray="38 276" stroke-dashoffset="-188"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#3b82f6" stroke-width="16" stroke-dasharray="88 226" stroke-dashoffset="-226"/>
+                </svg>
+                <div class="donut-center"><strong id="totalDonut">0</strong><span>Total</span></div>
+              </div>
+              <div class="donut-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div><span>Approved <strong id="lgApproved">0</strong></span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div><span>Under Review <strong id="lgReview">0</strong></span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div><span>Rejected <strong id="lgRejected">0</strong></span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div><span>Submitted <strong id="lgSubmitted">0</strong></span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#94a3b8"></div><span>Draft <strong id="lgDraft">0</strong></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Recent Activity -->
+        <div class="card">
+          <div class="card-header">
+            <h3>🕐 Recent Activity</h3>
+            <button class="btn btn-outline btn-sm" onclick="navigate('audit')">View All</button>
+          </div>
+          <div class="card-body" style="padding:12px 20px">
+            <div class="timeline" id="recentActivity"></div>
+          </div>
+        </div>
+        <!-- Pending Actions -->
+        <div class="card">
+          <div class="card-header">
+            <h3>⚡ Quick Actions</h3>
+          </div>
+          <div class="card-body">
+            <div id="quickActions"></div>
+            <div class="divider"></div>
+            <h4 style="font-size:13px;font-weight:700;margin-bottom:12px">📋 Submission Checklist</h4>
+            <div id="submissionChecklist"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SUBMIT DOCUMENT ══ -->
+    <div class="page" id="page-submit">
+      <div class="page-header">
+        <div>
+          <h1>📤 Submit Document</h1>
+          <p>Upload and submit documents for compliance review</p>
+        </div>
+      </div>
+      <div class="grid-2" style="align-items:start">
+        <div class="card">
+          <div class="card-header"><h3>Document Details</h3></div>
+          <div class="card-body">
+            <form id="submitForm" onsubmit="handleSubmit(event)">
+              <div class="form-grid" style="margin-bottom:18px">
+                <div class="form-group span2">
+                  <label class="form-label">Document Title <span class="req">*</span></label>
+                  <input class="form-input" id="docTitle" placeholder="Enter document title..." required/>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Document Type <span class="req">*</span></label>
+                  <select class="form-select" id="docType" required>
+                    <option value="">Select type...</option>
+                    <option>Policy Document</option>
+                    <option>Compliance Report</option>
+                    <option>Academic Record</option>
+                    <option>Financial Statement</option>
+                    <option>Legal Agreement</option>
+                    <option>Research Proposal</option>
+                    <option>Leave Application</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Department / Faculty <span class="req">*</span></label>
+                  <select class="form-select" id="docDept" required>
+                    <option value="">Select department...</option>
+                    <option>Computer Science</option>
+                    <option>Business Administration</option>
+                    <option>Engineering</option>
+                    <option>Medical Sciences</option>
+                    <option>Law Faculty</option>
+                    <option>Arts & Humanities</option>
+                    <option>Finance Office</option>
+                    <option>HR Department</option>
+                    <option>Administration</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Priority Level</label>
+                  <select class="form-select" id="docPriority">
+                    <option value="Low">🟢 Low</option>
+                    <option value="Medium" selected>🔵 Medium</option>
+                    <option value="High">🟠 High</option>
+                    <option value="Urgent">🔴 Urgent</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Assign Reviewer</label>
+                  <select class="form-select" id="docReviewer">
+                    <option value="">Auto-assign</option>
+                    <option>Dr. Sarah Mitchell</option>
+                    <option>Prof. James Carter</option>
+                    <option>Ms. Linda Torres</option>
+                    <option>Mr. David Chen</option>
+                  </select>
+                </div>
+                <div class="form-group span2">
+                  <label class="form-label">Description <span class="req">*</span></label>
+                  <textarea class="form-textarea" id="docDesc" placeholder="Describe the document purpose and contents..." required></textarea>
+                </div>
+                <div class="form-group span2">
+                  <label class="form-label">Tags (comma separated)</label>
+                  <input class="form-input" id="docTags" placeholder="e.g. compliance, annual, 2026"/>
+                </div>
+              </div>
+
+              <!-- Upload Zone -->
+              <div class="form-group" style="margin-bottom:20px">
+                <label class="form-label">Attach File <span class="req">*</span></label>
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
+                  <div class="upload-icon">📁</div>
+                  <p><strong>Click to upload</strong> or drag & drop</p>
+                  <p style="font-size:12px;margin-top:6px">PDF, DOCX, XLSX, PNG, JPG up to 25MB</p>
+                  <input type="file" id="fileInput" accept=".pdf,.docx,.xlsx,.png,.jpg,.jpeg" onchange="handleFileSelect(event)"/>
+                </div>
+                <div id="uploadedFileDisplay"></div>
+              </div>
+
+              <div style="display:flex;gap:10px">
+                <button type="button" class="btn btn-outline" onclick="saveDraft()">💾 Save Draft</button>
+                <button type="submit" class="btn btn-primary" style="flex:1" id="submitBtn">📤 Submit for Review</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Sidebar info -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="card">
+            <div class="card-header"><h3>📋 Submission Guidelines</h3></div>
+            <div class="card-body" style="padding:14px 20px">
+              <div id="guidelineChecklist"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>🔄 Approval Workflow</h3></div>
+            <div class="card-body">
+              <div class="timeline">
+                <div class="tl-item"><div class="tl-dot blue">1</div><div class="tl-content"><strong>Submit Document</strong><p>You upload and submit the document</p></div></div>
+                <div class="tl-item"><div class="tl-dot yellow">2</div><div class="tl-content"><strong>Initial Review</strong><p>Reviewer checks completeness</p></div></div>
+                <div class="tl-item"><div class="tl-dot yellow">3</div><div class="tl-content"><strong>Compliance Check</strong><p>Compliance officer verifies standards</p></div></div>
+                <div class="tl-item"><div class="tl-dot green">4</div><div class="tl-content"><strong>Final Approval</strong><p>Approver grants final sign-off</p></div></div>
+                <div class="tl-item"><div class="tl-dot green">✓</div><div class="tl-content"><strong>Completed</strong><p>Document archived & notified</p></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MY DOCUMENTS ══ -->
+    <div class="page" id="page-mydocs">
+      <div class="page-header">
+        <div><h1>📂 My Documents</h1><p>Track and manage your submitted documents</p></div>
+        <button class="btn btn-primary" onclick="navigate('submit')">➕ New Document</button>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding-bottom:0">
+          <div class="filter-bar">
+            <div class="search-box"><span>🔍</span><input type="text" placeholder="Search documents..." id="myDocsSearch" oninput="filterMyDocs()"/></div>
+            <select class="filter-select" id="myDocsStatus" onchange="filterMyDocs()">
+              <option value="">All Status</option>
+              <option>Draft</option><option>Submitted</option><option>Under Review</option>
+              <option>Approved</option><option>Rejected</option><option>Revision Required</option>
+            </select>
+            <select class="filter-select" id="myDocsType" onchange="filterMyDocs()">
+              <option value="">All Types</option>
+              <option>Policy Document</option><option>Compliance Report</option>
+              <option>Academic Record</option><option>Financial Statement</option>
+              <option>Legal Agreement</option><option>Research Proposal</option>
+              <option>Leave Application</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Document</th><th>Type</th><th>Department</th>
+                <th>Priority</th><th>Status</th><th>Submitted</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="myDocsTable"></tbody>
+          </table>
+        </div>
+        <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <span class="text-sm text-muted" id="myDocsPagination">Showing 0 documents</span>
+          <div style="display:flex;gap:6px" id="myDocsPaginationBtns"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PENDING APPROVALS ══ -->
+    <div class="page" id="page-approvals">
+      <div class="page-header">
+        <div><h1>✅ Pending Approvals</h1><p>Review and action documents awaiting your decision</p></div>
+        <div style="display:flex;gap:10px">
+          <select class="filter-select" id="approvalFilter" onchange="renderApprovals()">
+            <option value="">All Priorities</option>
+            <option>Urgent</option><option>High</option><option>Medium</option><option>Low</option>
+          </select>
+        </div>
+      </div>
+      <div id="approvalsContainer"></div>
+    </div>
+
+    <!-- ══ ALL DOCUMENTS ══ -->
+    <div class="page" id="page-alldocs">
+      <div class="page-header">
+        <div><h1>🗂️ All Documents</h1><p>Complete document repository</p></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-outline" onclick="exportCSV()">📥 Export CSV</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding-bottom:0">
+          <div class="filter-bar">
+            <div class="search-box"><span>🔍</span><input type="text" placeholder="Search all documents..." id="allDocsSearch" oninput="filterAllDocs()"/></div>
+            <select class="filter-select" id="allDocsStatus" onchange="filterAllDocs()">
+              <option value="">All Status</option>
+              <option>Draft</option><option>Submitted</option><option>Under Review</option>
+              <option>Approved</option><option>Rejected</option><option>Revision Required</option>
+            </select>
+            <select class="filter-select" id="allDocsDept" onchange="filterAllDocs()">
+              <option value="">All Departments</option>
+              <option>Computer Science</option><option>Business Administration</option>
+              <option>Engineering</option><option>Medical Sciences</option>
+              <option>Law Faculty</option><option>Finance Office</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>Document</th><th>Submitter</th><th>Type</th>
+                <th>Department</th><th>Priority</th><th>Status</th><th>Date</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="allDocsTable"></tbody>
+          </table>
+        </div>
+        <div style="padding:14px 20px;border-top:1px solid var(--border)">
+          <span class="text-sm text-muted" id="allDocsPagination">Showing 0 documents</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ NOTIFICATIONS ══ -->
+    <div class="page" id="page-notifications">
+      <div class="page-header">
+        <div><h1>🔔 Notifications</h1><p>Stay updated on document workflow activity</p></div>
+        <button class="btn btn-outline" onclick="markAllRead()">✓ Mark All Read</button>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-body" style="padding:12px 20px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap" id="notifFilters">
+            <button class="btn btn-primary btn-sm" onclick="filterNotifs('all',this)">All</button>
+            <button class="btn btn-outline btn-sm" onclick="filterNotifs('approval',this)">✅ Approvals</button>
+            <button class="btn btn-outline btn-sm" onclick="filterNotifs('rejection',this)">❌ Rejections</button>
+            <button class="btn btn-outline btn-sm" onclick="filterNotifs('revision',this)">🔄 Revisions</button>
+            <button class="btn btn-outline btn-sm" onclick="filterNotifs('submission',this)">📤 Submissions</button>
+            <button class="btn btn-outline btn-sm" onclick="filterNotifs('system',this)">⚙️ System</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div id="notifList"></div>
+      </div>
+    </div>
+
+    <!-- ══ AUDIT LOG ══ -->
+    <div class="page" id="page-audit">
+      <div class="page-header">
+        <div><h1>📜 Audit Log</h1><p>Complete trail of all system actions</p></div>
+        <button class="btn btn-outline" onclick="exportAuditCSV()">📥 Export CSV</button>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding-bottom:0">
+          <div class="filter-bar">
+            <div class="search-box"><span>🔍</span><input type="text" placeholder="Search audit log..." id="auditSearch" oninput="filterAudit()"/></div>
+            <select class="filter-select" id="auditAction" onchange="filterAudit()">
+              <option value="">All Actions</option>
+              <option>Submit</option><option>Approve</option><option>Reject</option>
+              <option>Review</option><option>Upload</option><option>Login</option><option>Revision</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Timestamp</th><th>User</th><th>Role</th>
+                <th>Action</th><th>Document</th><th>IP Address</th><th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="auditTable"></tbody>
+          </table>
+        </div>
+        <div style="padding:14px 20px;border-top:1px solid var(--border)">
+          <span class="text-sm text-muted" id="auditPagination">Showing 0 entries</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ USER MANAGEMENT ══ -->
+    <div class="page" id="page-users">
+      <div class="page-header">
+        <div><h1>👥 User Management</h1><p>Manage system users and their roles</p></div>
+        <button class="btn btn-primary" onclick="openAddUserModal()">➕ Add User</button>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding-bottom:0">
+          <div class="filter-bar">
+            <div class="search-box"><span>🔍</span><input type="text" placeholder="Search users..." id="userSearch" oninput="filterUsers()"/></div>
+            <select class="filter-select" id="userRoleFilter" onchange="filterUsers()">
+              <option value="">All Roles</option>
+              <option>Student</option><option>Staff</option><option>Reviewer</option>
+              <option>Approver</option><option>Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th><th>Email</th><th>Role</th><th>Department</th>
+                <th>Status</th><th>Last Login</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══ DOCUMENT DETAIL MODAL ══ -->
+<div class="modal-overlay" id="docModal">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <h2 id="modalDocTitle">Document Details</h2>
+      <button class="modal-close" onclick="closeModal('docModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('details',this)">📄 Details</button>
+        <button class="tab-btn" onclick="switchTab('timeline',this)">🔄 Timeline</button>
+        <button class="tab-btn" onclick="switchTab('comments',this)">💬 Comments</button>
+      </div>
+      <div class="tab-content active" id="tab-details"></div>
+      <div class="tab-content" id="tab-timeline"></div>
+      <div class="tab-content" id="tab-comments"></div>
+    </div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<!-- ══ ROLE MODAL ══ -->
+<div class="modal-overlay" id="roleModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h2>🔄 Switch Role</h2>
+      <button class="modal-close" onclick="closeModal('roleModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Select a role to experience the system from different perspectives:</p>
+      <div id="roleOptions"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD USER MODAL ══ -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <h2>➕ Add New User</h2>
+      <button class="modal-close" onclick="closeModal('addUserModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Full Name <span class="req">*</span></label><input class="form-input" id="newUserName" placeholder="Full name"/></div>
+        <div class="form-group"><label class="form-label">Email <span class="req">*</span></label><input class="form-input" id="newUserEmail" placeholder="email@institution.edu"/></div>
+        <div class="form-group"><label class="form-label">Role <span class="req">*</span></label>
+          <select class="form-select" id="newUserRole">
+            <option>Student</option><option>Staff</option><option>Reviewer</option><option>Approver</option><option>Admin</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Department</label>
+          <select class="form-select" id="newUserDept">
+            <option>Computer Science</option><option>Business Administration</option><option>Engineering</option>
+            <option>Medical Sciences</option><option>Law Faculty</option><option>Finance Office</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addUserModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addUser()">Add User</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APPROVE/REJECT MODAL ══ -->
+<div class="modal-overlay" id="actionModal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <h2 id="actionModalTitle">Action</h2>
+      <button class="modal-close" onclick="closeModal('actionModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:14px" id="actionModalDesc"></p>
+      <div class="form-group">
+        <label class="form-label">Comments / Notes</label>
+        <textarea class="form-textarea" id="actionComment" placeholder="Add your comments or reason..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('actionModal')">Cancel</button>
+      <button class="btn btn-primary" id="actionConfirmBtn" onclick="confirmAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA STORE
+// ══════════════════════════════════════════════
+const ROLES = [
+  { id:'student', label:'Student', color:'#3b82f6', icon:'🎓', desc:'Submit and track your documents', user:'Alex Johnson', dept:'Computer Science' },
+  { id:'staff', label:'Staff', color:'#8b5cf6', icon:'👔', desc:'Submit documents on behalf of department', user:'Maria Garcia', dept:'Business Administration' },
+  { id:'reviewer', label:'Reviewer', color:'#f59e0b', icon:'🔍', desc:'Review submitted documents for compliance', user:'Dr. Sarah Mitchell', dept:'Compliance Office' },
+  { id:'approver', label:'Approver', color:'#10b981', icon:'✅', desc:'Grant final approval on reviewed documents', user:'Prof. James Carter', dept:'Administration' },
+  { id:'admin', label:'Admin', color:'#ef4444', icon:'⚙️', desc:'Full system access and user management', user:'System Admin', dept:'IT Department' }
+];
+
+let currentRole = 'student';
+let currentAction = null;
+let currentActionDocId = null;
+let notifFilter = 'all';
+let uploadedFile = null;
+
+const DOCS = [
+  { id:'DOC-001', title:'Annual Compliance Report 2025', type:'Compliance Report', dept:'Finance Office', priority:'High', status:'Approved', submitter:'Maria Garcia', submitterRole:'Staff', date:'2026-01-15', reviewer:'Dr. Sarah Mitchell', approver:'Prof. James Carter', desc:'Annual compliance report covering all financial activities and regulatory adherence for fiscal year 2025.', tags:['compliance','annual','finance'], file:'compliance_report_2025.pdf' },
+  { id:'DOC-002', title:'Research Ethics Proposal - AI Study', type:'Research Proposal', dept:'Computer Science', priority:'Medium', status:'Under Review', submitter:'Alex Johnson', submitterRole:'Student', date:'2026-02-03', reviewer:'Dr. Sarah Mitchell', approver:'Prof. James Carter', desc:'Ethics proposal for conducting AI-based research involving human participants in the computer science department.', tags:['research','ethics','AI'], file:'ethics_proposal.docx' },
+  { id:'DOC-003', title:'Student Leave Application - Spring 2026', type:'Leave Application', dept:'Computer Science', priority:'Low', status:'Approved', submitter:'Alex Johnson', submitterRole:'Student', date:'2026-01-28', reviewer:'Ms. Linda Torres', approver:'Prof. James Carter', desc:'Application for academic leave during spring semester 2026 for medical reasons.', tags:['leave','student'], file:'leave_application.pdf' },
+  { id:'DOC-004', title:'Data Privacy Policy Update', type:'Policy Document', dept:'Administration', priority:'Urgent', status:'Submitted', submitter:'Maria Garcia', submitterRole:'Staff', date:'2026-02-10', reviewer:'', approver:'', desc:'Updated data privacy policy in compliance with new GDPR regulations effective March 2026.', tags:['policy','privacy','GDPR'], file:'privacy_policy_v2.pdf' },
+  { id:'DOC-005', title:'Q4 Financial Statement 2025', type:'Financial Statement', dept:'Finance Office', priority:'High', status:'Rejected', submitter:'Maria Garcia', submitterRole:'Staff', date:'2026-01-20', reviewer:'Mr. David Chen', approver:'Prof. James Carter', desc:'Quarterly financial statement for Q4 2025 including balance sheet and income statement.', tags:['financial','Q4','2025'], file:'q4_financial.xlsx' },
+  { id:'DOC-006', title:'Lab Safety Compliance Certificate', type:'Compliance Report', dept:'Engineering', priority:'High', status:'Under Review', submitter:'Dr. Robert Kim', submitterRole:'Staff', date:'2026-02-05', reviewer:'Dr. Sarah Mitchell', approver:'', desc:'Annual lab safety compliance certificate for all engineering laboratories.', tags:['safety','lab','engineering'], file:'lab_safety.pdf' },
+  { id:'DOC-007', title:'Student Scholarship Agreement', type:'Legal Agreement', dept:'Business Administration', priority:'Medium', status:'Approved', submitter:'Emma Wilson', submitterRole:'Student', date:'2026-01-10', reviewer:'Ms. Linda Torres', approver:'Prof. James Carter', desc:'Scholarship agreement for merit-based financial aid for academic year 2026.', tags:['scholarship','legal','student'], file:'scholarship_agreement.pdf' },
+  { id:'DOC-008', title:'Faculty Recruitment Policy', type:'Policy Document', dept:'HR Department', priority:'Medium', status:'Revision Required', submitter:'Maria Garcia', submitterRole:'Staff', date:'2026-02-01', reviewer:'Dr. Sarah Mitchell', approver:'', desc:'Updated faculty recruitment and selection policy for 2026 academic year.', tags:['HR','recruitment','policy'], file:'recruitment_policy.docx' },
+  { id:'DOC-009', title:'Medical Records Compliance Audit', type:'Compliance Report', dept:'Medical Sciences', priority:'Urgent', status:'Submitted', submitter:'Dr. Priya Sharma', submitterRole:'Staff', date:'2026-02-12', reviewer:'', approver:'', desc:'Compliance audit of medical records management system against HIPAA standards.', tags:['medical','HIPAA','audit'], file:'medical_audit.pdf' },
+  { id:'DOC-010', title:'Academic Transcript Request', type:'Academic Record', dept:'Computer Science', priority:'Low', status:'Approved', submitter:'Alex Johnson', submitterRole:'Student', date:'2026-01-05', reviewer:'Ms. Linda Torres', approver:'Prof. James Carter', desc:'Official academic transcript request for graduate school application.', tags:['transcript','academic'], file:'transcript_request.pdf' },
+  { id:'DOC-011', title:'IT Infrastructure Security Policy', type:'Policy Document', dept:'Administration', priority:'High', status:'Under Review', submitter:'System Admin', submitterRole:'Admin', date:'2026-02-08', reviewer:'Mr. David Chen', approver:'', desc:'Comprehensive IT security policy covering network, data, and access control standards.', tags:['IT','security','policy'], file:'it_security_policy.pdf' },
+  { id:'DOC-012', title:'Internship Agreement - TechCorp', type:'Legal Agreement', dept:'Computer Science', priority:'Medium', status:'Approved', submitter:'Alex Johnson', submitterRole:'Student', date:'2026-01-22', reviewer:'Ms. Linda Torres', approver:'Prof. James Carter', desc:'Internship agreement between student and TechCorp for summer 2026 placement.', tags:['internship','legal','student'], file:'internship_agreement.pdf' },
+  { id:'DOC-013', title:'Budget Allocation Request 2026', type:'Financial Statement', dept:'Engineering', priority:'High', status:'Submitted', submitter:'Dr. Robert Kim', submitterRole:'Staff', date:'2026-02-14', reviewer:'', approver:'', desc:'Annual budget allocation request for engineering department equipment and research.', tags:['budget','finance','engineering'], file:'budget_request.xlsx' },
+  { id:'DOC-014', title:'Student Code of Conduct Update', type:'Policy Document', dept:'Administration', priority:'Medium', status:'Draft', submitter:'Maria Garcia', submitterRole:'Staff', date:'2026-02-15', reviewer:'', approver:'', desc:'Revised student code of conduct incorporating new digital ethics guidelines.', tags:['policy','conduct','student'], file:'' },
+  { id:'DOC-015', title:'Research Grant Application - NSF', type:'Research Proposal', dept:'Medical Sciences', priority:'Urgent', status:'Under Review', submitter:'Dr. Priya Sharma', submitterRole:'Staff', date:'2026-02-11', reviewer:'Dr. Sarah Mitchell', approver:'', desc:'National Science Foundation grant application for medical research on infectious diseases.', tags:['grant','NSF','research'], file:'nsf_grant.pdf' },
+  { id:'DOC-016', title:'Environmental Compliance Report', type:'Compliance Report', dept:'Engineering', priority:'Medium', status:'Approved', submitter:'Dr. Robert Kim', submitterRole:'Staff', date:'2026-01-18', reviewer:'Mr. David Chen', approver:'Prof. James Carter', desc:'Annual environmental compliance report for campus facilities and operations.', tags:['environment','compliance'], file:'env_compliance.pdf' },
+  { id:'DOC-017', title:'Exam Deferral Application', type:'Leave Application', dept:'Law Faculty', priority:'Low', status:'Revision Required', submitter:'Emma Wilson', submitterRole:'Student', date:'2026-02-09', reviewer:'Ms. Linda Torres', approver:'', desc:'Application to defer final examinations due to medical emergency.', tags:['exam','deferral','student'], file:'exam_deferral.pdf' },
+  { id:'DOC-018', title:'Vendor Contract - Cloud Services', type:'Legal Agreement', dept:'Administration', priority:'High', status:'Submitted', submitter:'System Admin', submitterRole:'Admin', date:'2026-02-13', reviewer:'', approver:'', desc:'Three-year cloud services contract with AWS for institutional data storage and computing.', tags:['vendor','contract','cloud'], file:'aws_contract.pdf' }
+];
+
+const USERS = [
+  { id:'U001', name:'Alex Johnson', email:'alex.j@institution.edu', role:'Student', dept:'Computer Science', status:'Active', lastLogin:'2026-02-15 09:23', color:'#3b82f6' },
+  { id:'U002', name:'Maria Garcia', email:'m.garcia@institution.edu', role:'Staff', dept:'Business Administration', status:'Active', lastLogin:'2026-02-15 08:45', color:'#8b5cf6' },
+  { id:'U003', name:'Dr. Sarah Mitchell', email:'s.mitchell@institution.edu', role:'Reviewer', dept:'Compliance Office', status:'Active', lastLogin:'2026-02-15 10:12', color:'#f59e0b' },
+  { id:'U004', name:'Prof. James Carter', email:'j.carter@institution.edu', role:'Approver', dept:'Administration', status:'Active', lastLogin:'2026-02-14 16:30', color:'#10b981' },
+  { id:'U005', name:'System Admin', email:'admin@institution.edu', role:'Admin', dept:'IT Department', status:'Active', lastLogin:'2026-02-15 07:00', color:'#ef4444' },
+  { id:'U006', name:'Ms. Linda Torres', email:'l.torres@institution.edu', role:'Reviewer', dept:'Academic Affairs', status:'Active', lastLogin:'2026-02-13 14:22', color:'#f59e0b' },
+  { id:'U007', name:'Mr. David Chen', email:'d.chen@institution.edu', role:'Reviewer', dept:'Finance Office', status:'Active', lastLogin:'2026-02-12 11:05', color:'#f59e0b' },
+  { id:'U008', name:'Emma Wilson', email:'e.wilson@institution.edu', role:'Student', dept:'Law Faculty', status:'Active', lastLogin:'2026-02-15 08:00', color:'#3b82f6' },
+  { id:'U009', name:'Dr. Robert Kim', email:'r.kim@institution.edu', role:'Staff', dept:'Engineering', status:'Active', lastLogin:'2026-02-14 09:30', color:'#8b5cf6' },
+  { id:'U010', name:'Dr. Priya Sharma', email:'p.sharma@institution.edu', role:'Staff', dept:'Medical Sciences', status:'Inactive', lastLogin:'2026-02-10 15:45', color:'#8b5cf6' }
+];
+
+const NOTIFICATIONS = [
+  { id:'N001', type:'approval', icon:'✅', title:'Document Approved', msg:'Your "Academic Transcript Request" has been approved by Prof. James Carter.', time:'2 hours ago', read:false },
+  { id:'N002', type:'revision', icon:'🔄', title:'Revision Required', msg:'"Faculty Recruitment Policy" requires revision. Please review the comments from Dr. Sarah Mitchell.', time:'4 hours ago', read:false },
+  { id:'N003', type:'submission', icon:'📤', title:'New Document Submitted', msg:'Dr. Priya Sharma submitted "Medical Records Compliance Audit" for review.', time:'5 hours ago', read:false },
+  { id:'N004', type:'rejection', icon:'❌', title:'Document Rejected', msg:'"Q4 Financial Statement 2025" was rejected. Reason: Incomplete supporting documents.', time:'1 day ago', read:false },
+  { id:'N005', type:'approval', icon:'✅', title:'Document Approved', msg:'"Internship Agreement - TechCorp" has been fully approved and archived.', time:'1 day ago', read:false },
+  { id:'N006', type:'submission', icon:'📤', title:'New Document Submitted', msg:'Maria Garcia submitted "Data Privacy Policy Update" for your review.', time:'2 days ago', read:true },
+  { id:'N007', type:'system', icon:'⚙️', title:'System Maintenance', msg:'Scheduled maintenance on Feb 20, 2026 from 2:00 AM - 4:00 AM UTC.', time:'2 days ago', read:true },
+  { id:'N008', type:'revision', icon:'🔄', title:'Revision Submitted', msg:'Emma Wilson resubmitted "Exam Deferral Application" after revision.', time:'3 days ago', read:true },
+  { id:'N009', type:'approval', icon:'✅', title:'Document Approved', msg:'"Environmental Compliance Report" approved and filed successfully.', time:'4 days ago', read:true },
+  { id:'N010', type:'system', icon:'⚙️', title:'New User Added', msg:'Dr. Priya Sharma has been added to the system as Staff member.', time:'5 days ago', read:true }
+];
+
+const AUDIT_LOG = [
+  { id:1, ts:'2026-02-15 10:45:22', user:'Dr. Sarah Mitchell', role:'Reviewer', action:'Review', doc:'Research Ethics Proposal - AI Study', ip:'192.168.1.45', detail:'Moved to compliance check stage' },
+  { id:2, ts:'2026-02-15 09:30:11', user:'Alex Johnson', role:'Student', action:'Submit', doc:'Research Ethics Proposal - AI Study', ip:'10.0.0.23', detail:'Document submitted for review' },
+  { id:3, ts:'2026-02-15 08:55:03', user:'Maria Garcia', role:'Staff', action:'Upload', doc:'Data Privacy Policy Update', ip:'192.168.1.12', detail:'File uploaded: privacy_policy_v2.pdf' },
+  { id:4, ts:'2026-02-14 16:20:44', user:'Prof. James Carter', role:'Approver', action:'Approve', doc:'Internship Agreement - TechCorp', ip:'192.168.1.8', detail:'Final approval granted' },
+  { id:5, ts:'2026-02-14 15:10:30', user:'Ms. Linda Torres', role:'Reviewer', action:'Review', doc:'Internship Agreement - TechCorp', ip:'192.168.1.33', detail:'Compliance check passed' },
+  { id:6, ts:'2026-02-14 11:05:17', user:'Dr. Sarah Mitchell', role:'Reviewer', action:'Revision', doc:'Faculty Recruitment Policy', ip:'192.168.1.45', detail:'Revision requested: Missing appendix section' },
+  { id:7, ts:'2026-02-13 14:30:55', user:'Prof. James Carter', role:'Approver', action:'Reject', doc:'Q4 Financial Statement 2025', ip:'192.168.1.8', detail:'Rejected: Incomplete supporting documents' },
+  { id:8, ts:'2026-02-13 10:22:08', user:'Mr. David Chen', role:'Reviewer', action:'Review', doc:'Q4 Financial Statement 2025', ip:'192.168.1.67', detail:'Forwarded to approver with concerns' },
+  { id:9, ts:'2026-02-12 09:15:44', user:'System Admin', role:'Admin', action:'Login', doc:'-', ip:'127.0.0.1', detail:'Admin login from secure terminal' },
+  { id:10, ts:'2026-02-12 08:45:22', user:'Dr. Robert Kim', role:'Staff', action:'Submit', doc:'Lab Safety Compliance Certificate', ip:'10.0.0.55', detail:'Document submitted for review' },
+  { id:11, ts:'2026-02-11 16:00:11', user:'Prof. James Carter', role:'Approver', action:'Approve', doc:'Environmental Compliance Report', ip:'192.168.1.8', detail:'Approved and archived' },
+  { id:12, ts:'2026-02-11 14:30:00', user:'Mr. David Chen', role:'Reviewer', action:'Review', doc:'Environmental Compliance Report', ip:'192.168.1.67', detail:'All compliance checks passed' },
+  { id:13, ts:'2026-02-10 11:20:33', user:'Emma Wilson', role:'Student', action:'Submit', doc:'Exam Deferral Application', ip:'10.0.0.88', detail:'Resubmitted after revision' },
+  { id:14, ts:'2026-02-09 15:45:22', user:'Ms. Linda Torres', role:'Reviewer', action:'Revision', doc:'Exam Deferral Application', ip:'192.168.1.33', detail:'Medical certificate required' },
+  { id:15, ts:'2026-02-08 10:00:00', user:'System Admin', role:'Admin', action:'Upload', doc:'IT Infrastructure Security Policy', ip:'127.0.0.1', detail:'New policy document uploaded' },
+  { id:16, ts:'2026-02-05 09:30:15', user:'Prof. James Carter', role:'Approver', action:'Approve', doc:'Student Scholarship Agreement', ip:'192.168.1.8', detail:'Scholarship approved for AY2026' },
+  { id:17, ts:'2026-02-03 14:22:08', user:'Alex Johnson', role:'Student', action:'Submit', doc:'Research Ethics Proposal - AI Study', ip:'10.0.0.23', detail:'Initial submission' },
+  { id:18, ts:'2026-01-28 11:05:44', user:'Alex Johnson', role:'Student', action:'Submit', doc:'Student Leave Application - Spring 2026', ip:'10.0.0.23', detail:'Leave application submitted' },
+  { id:19, ts:'2026-01-22 09:15:30', user:'Alex Johnson', role:'Student', action:'Upload', doc:'Internship Agreement - TechCorp', ip:'10.0.0.23', detail:'File uploaded: internship_agreement.pdf' },
+  { id:20, ts:'2026-01-15 08:30:00', user:'Maria Garcia', role:'Staff', action:'Submit', doc:'Annual Compliance Report 2025', ip:'192.168.1.12', detail:'Annual report submitted for review' }
+];
+
+// ══════════════════════════════════════════════
+//  NAVIGATION CONFIG
+// ══════════════════════════════════════════════
+const NAV_CONFIG = {
+  student: [
+    { id:'dashboard', icon:'📊', label:'Dashboard' },
+    { id:'submit', icon:'📤', label:'Submit Document' },
+    { id:'mydocs', icon:'📂', label:'My Documents', badge:'mydocs' },
+    { id:'notifications', icon:'🔔', label:'Notifications', badge:'notif' }
+  ],
+  staff: [
+    { id:'dashboard', icon:'📊', label:'Dashboard' },
+    { id:'submit', icon:'📤', label:'Submit Document' },
+    { id:'mydocs', icon:'📂', label:'My Documents', badge:'mydocs' },
+    { id:'notifications', icon:'🔔', label:'Notifications', badge:'notif' }
+  ],
+  reviewer: [
+    { id:'dashboard', icon:'📊', label:'Dashboard' },
+    { id:'approvals', icon:'✅', label:'Pending Approvals', badge:'approvals' },
+    { id:'alldocs', icon:'🗂️', label:'All Documents' },
+    { id:'notifications', icon:'🔔', label:'Notifications', badge:'notif' },
+    { id:'audit', icon:'📜', label:'Audit Log' }
+  ],
+  approver: [
+    { id:'dashboard', icon:'📊', label:'Dashboard' },
+    { id:'approvals', icon:'✅', label:'Pending Approvals', badge:'approvals' },
+    { id:'alldocs', icon:'🗂️', label:'All Documents' },
+    { id:'notifications', icon:'🔔', label:'Notifications', badge:'notif' },
+    { id:'audit', icon:'📜', label:'Audit Log' }
+  ],
+  admin: [
+    { id:'dashboard', icon:'📊', label:'Dashboard' },
+    { id:'alldocs', icon:'🗂️', label:'All Documents' },
+    { id:'approvals', icon:'✅', label:'Pending Approvals', badge:'approvals' },
+    { id:'notifications', icon:'🔔', label:'Notifications', badge:'notif' },
+    { id:'audit', icon:'📜', label:'Audit Log' },
+    { id:'users', icon:'👥', label:'User Management' }
+  ]
+};
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+let currentPage = 'dashboard';
+
+function init() {
+  setRole('student');
+  renderDashboard();
+}
+
+function setRole(roleId) {
+  currentRole = roleId;
+  const role = ROLES.find(r => r.id === roleId);
+  // Update header
+  document.getElementById('roleLabel').textContent = role.label;
+  document.getElementById('roleDot').style.background = role.color;
+  document.getElementById('headerSubtitle').textContent = `Welcome back, ${role.user.split(' ')[0]}`;
+  // Update sidebar user
+  document.getElementById('sidebarUserName').textContent = role.user;
+  document.getElementById('sidebarUserRole').textContent = role.label;
+  document.getElementById('sidebarAvatar').textContent = role.user.charAt(0);
+  document.getElementById('sidebarAvatar').style.background = role.color;
+  // Render nav
+  renderNav();
+  // Navigate to dashboard
+  navigate('dashboard');
+  updateNotifCount();
+}
+
+function renderNav() {
+  const nav = document.getElementById('sidebarNav');
+  const items = NAV_CONFIG[currentRole];
+  let html = `<div class="nav-section-label">Main Menu</div>`;
+  items.forEach(item => {
+    const badge = getBadgeCount(item.badge);
+    html += `<div class="nav-item ${currentPage===item.id?'active':''}" onclick="navigate('${item.id}')" id="nav-${item.id}">
+      <span class="nav-icon">${item.icon}</span>
+      <span>${item.label}</span>
+      ${badge ? `<span class="nav-badge ${item.badge==='notif'?'':'blue'}">${badge}</span>` : ''}
+    </div>`;
+  });
+  nav.innerHTML = html;
+}
+
+function getBadgeCount(type) {
+  if (!type) return 0;
+  if (type === 'notif') return NOTIFICATIONS.filter(n => !n.read).length;
+  if (type === 'approvals') return DOCS.filter(d => d.status === 'Submitted' || d.status === 'Under Review').length;
+  if (type === 'mydocs') {
+    const role = ROLES.find(r => r.id === currentRole);
+    return DOCS.filter(d => d.submitter === role.user && (d.status === 'Submitted' || d.status === 'Under Review')).length;
+  }
+  return 0;
+}
+
+function navigate(pageId) {
+  // Check access
+  const allowed = NAV_CONFIG[currentRole].map(n => n.id);
+  if (!allowed.includes(pageId)) { showToast('Access denied for your role.', 'error'); return; }
+  currentPage = pageId;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  // Update header
+  const item = NAV_CONFIG[currentRole].find(n => n.id === pageId);
+  if (item) document.getElementById('headerPageName').textContent = item.icon + ' ' + item.label;
+  // Render nav
+  renderNav();
+  // Render page content
+  if (pageId === 'dashboard') renderDashboard();
+  if (pageId === 'mydocs') renderMyDocs();
+  if (pageId === 'approvals') renderApprovals();
+  if (pageId === 'alldocs') renderAllDocs();
+  if (pageId === 'notifications') renderNotifications();
+  if (pageId === 'audit') renderAudit();
+  if (pageId === 'users') renderUsers();
+  if (pageId === 'submit') renderSubmitPage();
+  closeSidebar();
+}
+
+// ══════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard() {
+  const total = DOCS.length;
+  const approved = DOCS.filter(d => d.status === 'Approved').length;
+  const pending = DOCS.filter(d => d.status === 'Submitted' || d.status === 'Under Review').length;
+  const rejected = DOCS.filter(d => d.status === 'Rejected').length;
+  const revision = DOCS.filter(d => d.status === 'Revision Required').length;
+
+  // Stats
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card blue"><div class="stat-icon blue">📋</div><div class="stat-info"><h2>${total}</h2><p>Total Documents</p><div class="stat-change up">↑ 3 this week</div></div></div>
+    <div class="stat-card yellow"><div class="stat-icon yellow">⏳</div><div class="stat-info"><h2>${pending}</h2><p>Pending Review</p><div class="stat-change up">↑ 2 new today</div></div></div>
+    <div class="stat-card green"><div class="stat-icon green">✅</div><div class="stat-info"><h2>${approved}</h2><p>Approved</p><div class="stat-change up">↑ 5 this month</div></div></div>
+    <div class="stat-card red"><div class="stat-icon red">❌</div><div class="stat-info"><h2>${rejected}</h2><p>Rejected</p><div class="stat-change down">↓ 1 this week</div></div></div>
+    <div class="stat-card purple"><div class="stat-icon purple">🔄</div><div class="stat-info"><h2>${revision}</h2><p>Needs Revision</p><div class="stat-change">No change</div></div></div>
+  `;
+
+  // Donut
+  document.getElementById('totalDonut').textContent = total;
+  document.getElementById('lgApproved').textContent = approved;
+  document.getElementById('lgReview').textContent = DOCS.filter(d=>d.status==='Under Review').length;
+  document.getElementById('lgRejected').textContent = rejected;
+  document.getElementById('lgSubmitted').textContent = DOCS.filter(d=>d.status==='Submitted').length;
+  document.getElementById('lgDraft').textContent = DOCS.filter(d=>d.status==='Draft').length;
+
+  // Workflow pipeline
+  const stages = [
+    { label:'Draft', icon:'📝', done:true },
+    { label:'Submitted', icon:'📤', done:true },
+    { label:'Under Review', icon:'🔍', done:false, active:true },
+    { label:'Pending Approval', icon:'⏳', done:false },
+    { label:'Completed', icon:'✅', done:false }
+  ];
+  document.getElementById('workflowPipeline').innerHTML = stages.map(s =>
+    `<div class="wf-step ${s.done?'done':''} ${s.active?'active':''}">
+      <div class="wf-circle">${s.done?'✓':s.icon}</div>
+      <div class="wf-label">${s.label}</div>
+    </div>`
+  ).join('');
+
+  // Recent Activity
+  const recent = AUDIT_LOG.slice(0, 6);
+  const colorMap = { Submit:'blue', Approve:'green', Reject:'red', Review:'yellow', Upload:'gray', Login:'gray', Revision:'yellow' };
+  document.getElementById('recentActivity').innerHTML = recent.map(a =>
+    `<div class="tl-item">
+      <div class="tl-dot ${colorMap[a.action]||'gray'}">${a.action.charAt(0)}</div>
+      <div class="tl-content">
+        <strong>${a.user}</strong>
+        <p>${a.action}: ${a.doc !== '-' ? a.doc.substring(0,35)+'...' : 'System'}</p>
+        <div class="tl-time">${a.ts}</div>
+      </div>
+    </div>`
+  ).join('');
+
+  // Quick Actions
+  const role = ROLES.find(r => r.id === currentRole);
+  let qa = '';
+  if (['student','staff'].includes(currentRole)) {
+    qa = `<button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="navigate('submit')">📤 Submit New Document</button>
+          <button class="btn btn-outline" style="width:100%;margin-bottom:8px" onclick="navigate('mydocs')">📂 View My Documents</button>`;
+  } else if (['reviewer','approver'].includes(currentRole)) {
+    const pend = DOCS.filter(d => d.status === 'Submitted' || d.status === 'Under Review').length;
+    qa = `<button class="btn btn-warning" style="width:100%;margin-bottom:8px" onclick="navigate('approvals')">✅ Review ${pend} Pending Documents</button>
+          <button class="btn btn-outline" style="width:100%;margin-bottom:8px" onclick="navigate('alldocs')">🗂️ Browse All Documents</button>`;
+  } else {
+    qa = `<button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="navigate('users')">👥 Manage Users</button>
+          <button class="btn btn-outline" style="width:100%;margin-bottom:8px" onclick="navigate('audit')">📜 View Audit Log</button>`;
+  }
+  document.getElementById('quickActions').innerHTML = qa;
+
+  // Checklist
+  const checks = [
+    { done:true, text:'Document title is clear and descriptive' },
+    { done:true, text:'Correct document type selected' },
+    { done:true, text:'Department/Faculty specified' },
+    { done:false, text:'Supporting files attached' },
+    { done:false, text:'Description is complete' },
+    { done:true, text:'Priority level set appropriately' }
+  ];
+  document.getElementById('submissionChecklist').innerHTML = checks.map(c =>
+    `<div class="checklist-item"><span class="check-icon">${c.done?'✅':'⬜'}</span><span style="color:${c.done?'var(--text)':'var(--text-muted)'}">${c.text}</span></div>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════
+//  SUBMIT PAGE
+// ══════════════════════════════════════════════
+function renderSubmitPage() {
+  const guidelines = [
+    { done:true, text:'Use clear, descriptive document titles' },
+    { done:true, text:'Select the most appropriate document type' },
+    { done:true, text:'Attach all required supporting files' },
+    { done:true, text:'Provide a detailed description' },
+    { done:true, text:'Set correct priority level' },
+    { done:true, text:'Verify department/faculty is correct' },
+    { done:true, text:'Review document before submission' }
+  ];
+  document.getElementById('guidelineChecklist').innerHTML = guidelines.map(g =>
+    `<div class="checklist-item"><span class="check-icon">✅</span><span>${g.text}</span></div>`
+  ).join('');
+}
+
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag'); }
+function handleDragLeave(e) { document.getElementById('uploadZone').classList.remove('drag'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) displayUploadedFile(file);
+}
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) displayUploadedFile(file);
+}
+function displayUploadedFile(file) {
+  uploadedFile = file;
+  const size = (file.size / 1024).toFixed(1) + ' KB';
+  document.getElementById('uploadedFileDisplay').innerHTML = `
+    <div class="uploaded-file">
+      <span class="file-icon">📄</span>
+      <span class="file-name">${file.name}</span>
+      <span class="file-size">${size}</span>
+      <span class="remove-file" onclick="removeFile()">✕</span>
+    </div>`;
+}
+function removeFile() { uploadedFile = null; document.getElementById('uploadedFileDisplay').innerHTML = ''; document.getElementById('fileInput').value = ''; }
+
+function handleSubmit(e) {
+  e.preventDefault();
+  const title = document.getElementById('docTitle').value;
+  const type = document.getElementById('docType').value;
+  const dept = document.getElementById('docDept').value;
+  const priority = document.getElementById('docPriority').value;
+  const desc = document.getElementById('docDesc').value;
+  const tags = document.getElementById('docTags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const reviewer = document.getElementById('docReviewer').value;
+  const role = ROLES.find(r => r.id === currentRole);
+
+  const newDoc = {
+    id: 'DOC-' + String(DOCS.length + 1).padStart(3,'0'),
+    title, type, dept, priority, status: 'Submitted',
+    submitter: role.user, submitterRole: role.label,
+    date: new Date().toISOString().split('T')[0],
+    reviewer: reviewer || 'Auto-assigned', approver: '',
+    desc, tags, file: uploadedFile ? uploadedFile.name : ''
+  };
+  DOCS.unshift(newDoc);
+  AUDIT_LOG.unshift({ id: AUDIT_LOG.length+1, ts: new Date().toLocaleString(), user: role.user, role: role.label, action:'Submit', doc: title, ip:'10.0.0.1', detail:'Document submitted for review' });
+  NOTIFICATIONS.unshift({ id:'N'+(NOTIFICATIONS.length+1), type:'submission', icon:'📤', title:'Document Submitted', msg:`"${title}" has been submitted for review.`, time:'Just now', read:false });
+
+  showToast('Document submitted successfully! 🎉', 'success');
+  document.getElementById('submitForm').reset();
+  removeFile();
+  updateNotifCount();
+  renderNav();
+  setTimeout(() => navigate('mydocs'), 1200);
+}
+
+function saveDraft() {
+  const title = document.getElementById('docTitle').value || 'Untitled Document';
+  const role = ROLES.find(r => r.id === currentRole);
+  DOCS.unshift({ id:'DOC-'+String(DOCS.length+1).padStart(3,'0'), title, type: document.getElementById('docType').value || 'Other', dept: document.getElementById('docDept').value || 'Administration', priority: document.getElementById('docPriority').value, status:'Draft', submitter: role.user, submitterRole: role.label, date: new Date().toISOString().split('T')[0], reviewer:'', approver:'', desc: document.getElementById('docDesc').value, tags:[], file:'' });
+  showToast('Draft saved successfully! 💾', 'success');
+}
+
+// ══════════════════════════════════════════════
+//  MY DOCUMENTS
+// ══════════════════════════════════════════════
+function renderMyDocs() {
+  const role = ROLES.find(r => r.id === currentRole);
+  let docs = DOCS.filter(d => d.submitter === role.user);
+  const search = document.getElementById('myDocsSearch').value.toLowerCase();
+  const status = document.getElementById('myDocsStatus').value;
+  const type = document.getElementById('myDocsType').value;
+  if (search) docs = docs.filter(d => d.title.toLowerCase().includes(search) || d.type.toLowerCase().includes(search));
+  if (status) docs = docs.filter(d => d.status === status);
+  if (type) docs = docs.filter(d => d.type === type);
+
+  document.getElementById('myDocsPagination').textContent = `Showing ${docs.length} document${docs.length!==1?'s':''}`;
+  if (!docs.length) {
+    document.getElementById('myDocsTable').innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📂</div><h3>No documents found</h3><p>Submit your first document to get started</p></div></td></tr>`;
+    return;
+  }
+  document.getElementById('myDocsTable').innerHTML = docs.map(d => `
+    <tr>
+      <td><div style="font-weight:600;font-size:13px">${d.title}</div><div style="font-size:11px;color:var(--text-muted)">${d.id}</div></td>
+      <td style="font-size:12.5px">${d.type}</td>
+      <td style="font-size:12.5px">${d.dept}</td>
+      <td><span class="priority-badge priority-${d.priority.toLowerCase()}">${d.priority}</span></td>
+      <td>${statusBadge(d.status)}</td>
+      <td style="font-size:12.5px;color:var(--text-muted)">${d.date}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-outline btn-sm" onclick="openDocModal('${d.id}')">👁 View</button>
+          ${d.status==='Draft'?`<button class="btn btn-primary btn-sm" onclick="submitDraft('${d.id}')">📤 Submit</button>`:''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+function filterMyDocs() { renderMyDocs(); }
+
+function submitDraft(docId) {
+  const doc = DOCS.find(d => d.id === docId);
+  if (doc) { doc.status = 'Submitted'; showToast('Draft submitted for review!', 'success'); renderMyDocs(); renderNav(); }
+}
+
+// ══════════════════════════════════════════════
+//  APPROVALS
+// ══════════════════════════════════════════════
+function renderApprovals() {
+  const filter = document.getElementById('approvalFilter').value;
+  let docs = DOCS.filter(d => d.status === 'Submitted' || d.status === 'Under Review');
+  if (filter) docs = docs.filter(d => d.priority === filter);
+
+  const container = document.getElementById('approvalsContainer');
+  if (!docs.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><h3>All caught up!</h3><p>No documents pending your review</p></div>`;
+    return;
+  }
+  container.innerHTML = docs.map(d => `
+    <div class="approval-card">
+      <div class="approval-card-header">
+        <div>
+          <div class="approval-card-title">${d.title}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:3px">${d.id}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="priority-badge priority-${d.priority.toLowerCase()}">${d.priority}</span>
+          ${statusBadge(d.status)}
+        </div>
+      </div>
+      <div class="approval-card-meta">
+        <span>👤 ${d.submitter}</span>
+        <span>📁 ${d.type}</span>
+        <span>🏢 ${d.dept}</span>
+        <span>📅 ${d.date}</span>
+        ${d.file ? `<span>📎 ${d.file}</span>` : ''}
+      </div>
+      <div class="approval-card-desc">${d.desc}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        ${d.tags.map(t => `<span style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:11px;color:var(--text-muted)">#${t}</span>`).join('')}
+      </div>
+      <div class="approval-actions">
+        <button class="btn btn-outline btn-sm" onclick="openDocModal('${d.id}')">👁 View Details</button>
+        <button class="btn btn-success btn-sm" onclick="openActionModal('${d.id}','approve')">✅ Approve</button>
+        <button class="btn btn-warning btn-sm" onclick="openActionModal('${d.id}','revision')">🔄 Request Revision</button>
+        <button class="btn btn-danger btn-sm" onclick="openActionModal('${d.id}','reject')">❌ Reject</button>
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+//  ALL DOCUMENTS
+// ══════════════════════════════════════════════
+function renderAllDocs() {
+  let docs = [...DOCS];
+  const search = document.getElementById('allDocsSearch').value.toLowerCase();
+  const status = document.getElementById('allDocsStatus').value;
+  const dept = document.getElementById('allDocsDept').value;
+  if (search) docs = docs.filter(d => d.title.toLowerCase().includes(search) || d.submitter.toLowerCase().includes(search));
+  if (status) docs = docs.filter(d => d.status === status);
+  if (dept) docs = docs.filter(d => d.dept === dept);
+
+  document.getElementById('allDocsPagination').textContent = `Showing ${docs.length} of ${DOCS.length} documents`;
+  document.getElementById('allDocsTable').innerHTML = docs.map(d => `
+    <tr>
+      <td style="font-size:11px;color:var(--text-muted);font-weight:600">${d.id}</td>
+      <td><div style="font-weight:600;font-size:13px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.title}</div></td>
+      <td><div style="font-size:12.5px">${d.submitter}</div><div style="font-size:11px;color:var(--text-muted)">${d.submitterRole}</div></td>
+      <td style="font-size:12px">${d.type}</td>
+      <td style="font-size:12px">${d.dept}</td>
+      <td><span class="priority-badge priority-${d.priority.toLowerCase()}">${d.priority}</span></td>
+      <td>${statusBadge(d.status)}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${d.date}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="openDocModal('${d.id}')">👁 View</button></td>
+    </tr>`).join('');
+}
+function filterAllDocs() { renderAllDocs(); }
+
+// ══════════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════════
+function renderNotifications() {
+  let notifs = notifFilter === 'all' ? NOTIFICATIONS : NOTIFICATIONS.filter(n => n.type === notifFilter);
+  const list = document.getElementById('notifList');
+  if (!notifs.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔔</div><h3>No notifications</h3><p>You're all caught up!</p></div>`;
+    return;
+  }
+  const bgMap = { approval:'#ecfdf5', rejection:'#fef2f2', revision:'#fff7ed', submission:'#eff6ff', system:'#f5f3ff' };
+  list.innerHTML = notifs.map(n => `
+    <div class="notif-item ${n.read?'':'unread'}" onclick="markRead('${n.id}')">
+      <div class="notif-icon" style="background:${bgMap[n.type]||'#f1f5f9'}">${n.icon}</div>
+      <div class="notif-body">
+        <strong>${n.title}</strong>
+        <p>${n.msg}</p>
+        <div class="notif-time">🕐 ${n.time}</div>
+      </div>
+      ${!n.read ? '<div class="notif-dot"></div>' : ''}
+    </div>`).join('');
+}
+
+function filterNotifs(type, btn) {
+  notifFilter = type;
+  document.querySelectorAll('#notifFilters .btn').forEach(b => { b.className = 'btn btn-outline btn-sm'; });
+  btn.className = 'btn btn-primary btn-sm';
+  renderNotifications();
+}
+
+function markRead(id) {
+  const n = NOTIFICATIONS.find(n => n.id === id);
+  if (n) { n.read = true; updateNotifCount(); renderNotifications(); renderNav(); }
+}
+
+function markAllRead() {
+  NOTIFICATIONS.forEach(n => n.read = true);
+  updateNotifCount(); renderNotifications(); renderNav();
+  showToast('All notifications marked as read', 'success');
+}
+
+function updateNotifCount() {
+  const count = NOTIFICATIONS.filter(n => !n.read).length;
+  const el = document.getElementById('notifCount');
+  el.textContent = count;
+  el.style.display = count > 0 ? 'flex' : 'none';
+}
+
+// ══════════════════════════════════════════════
+//  AUDIT LOG
+// ══════════════════════════════════════════════
+function renderAudit() {
+  let logs = [...AUDIT_LOG];
+  const search = document.getElementById('auditSearch').value.toLowerCase();
+  const action = document.getElementById('auditAction').value;
+  if (search) logs = logs.filter(l => l.user.toLowerCase().includes(search) || l.doc.toLowerCase().includes(search));
+  if (action) logs = logs.filter(l => l.action === action);
+
+  document.getElementById('auditPagination').textContent = `Showing ${logs.length} of ${AUDIT_LOG.length} entries`;
+  document.getElementById('auditTable').innerHTML = logs.map((l,i) => `
+    <tr>
+      <td style="font-size:11px;color:var(--text-muted)">${l.id}</td>
+      <td style="font-size:12px;white-space:nowrap">${l.ts}</td>
+      <td><div style="font-size:13px;font-weight:600">${l.user}</div></td>
+      <td><span style="font-size:11.5px;color:var(--text-muted)">${l.role}</span></td>
+      <td><span class="action-tag action-${l.action.toLowerCase()}">${l.action}</span></td>
+      <td style="font-size:12.5px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.doc}</td>
+      <td style="font-size:12px;color:var(--text-muted);font-family:monospace">${l.ip}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${l.detail}</td>
+    </tr>`).join('');
+}
+function filterAudit() { renderAudit(); }
+
+// ══════════════════════════════════════════════
+//  USERS
+// ══════════════════════════════════════════════
+function renderUsers() {
+  let users = [...USERS];
+  const search = document.getElementById('userSearch').value.toLowerCase();
+  const role = document.getElementById('userRoleFilter').value;
+  if (search) users = users.filter(u => u.name.toLowerCase().includes(search) || u.email.toLowerCase().includes(search));
+  if (role) users = users.filter(u => u.role === role);
+
+  document.getElementById('usersTable').innerHTML = users.map(u => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="user-row-avatar" style="background:${u.color}">${u.name.charAt(0)}</div>
+          <div><div style="font-weight:600;font-size:13px">${u.name}</div><div style="font-size:11px;color:var(--text-muted)">${u.id}</div></div>
+        </div>
+      </td>
+      <td style="font-size:12.5px">${u.email}</td>
+      <td><span class="badge ${roleBadgeClass(u.role)}">${u.role}</span></td>
+      <td style="font-size:12.5px">${u.dept}</td>
+      <td><span class="${u.status==='Active'?'status-active':'status-inactive'}">● ${u.status}</span></td>
+      <td style="font-size:12px;color:var(--text-muted)">${u.lastLogin}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-outline btn-sm" onclick="showToast('Edit user: ${u.name}','success')">✏️ Edit</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--danger)" onclick="toggleUserStatus('${u.id}')">
+            ${u.status==='Active'?'🚫 Deactivate':'✅ Activate'}
+          </button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+function filterUsers() { renderUsers(); }
+
+function roleBadgeClass(role) {
+  const map = { Student:'badge-submitted', Staff:'badge-pending', Reviewer:'badge-review', Approver:'badge-approved', Admin:'badge-rejected' };
+  return map[role] || 'badge-draft';
+}
+
+function toggleUserStatus(id) {
+  const u = USERS.find(u => u.id === id);
+  if (u) { u.status = u.status === 'Active' ? 'Inactive' : 'Active'; renderUsers(); showToast(`User ${u.status === 'Active' ? 'activated' : 'deactivated'}`, 'success'); }
+}
+
+function openAddUserModal() { openModal('addUserModal'); }
+function addUser() {
+  const name = document.getElementById('newUserName').value;
+  const email = document.getElementById('newUserEmail').value;
+  const role = document.getElementById('newUserRole').value;
+  const dept = document.getElementById('newUserDept').value;
+  if (!name || !email) { showToast('Please fill all required fields', 'error'); return; }
+  const colors = { Student:'#3b82f6', Staff:'#8b5cf6', Reviewer:'#f59e0b', Approver:'#10b981', Admin:'#ef4444' };
+  USERS.push({ id:'U'+String(USERS.length+1).padStart(3,'0'), name, email, role, dept, status:'Active', lastLogin:'Never', color: colors[role] });
+  closeModal('addUserModal');
+  renderUsers();
+  showToast(`User "${name}" added successfully!`, 'success');
+  document.getElementById('newUserName').value = '';
+  document.getElementById('newUserEmail').value = '';
+}
+
+// ══════════════════════════════════════════════
+//  DOCUMENT MODAL
+// ══════════════════════════════════════════════
+function openDocModal(docId) {
+  const doc = DOCS.find(d => d.id === docId);
+  if (!doc) return;
+  document.getElementById('modalDocTitle').textContent = doc.title;
+
+  // Details tab
+  document.getElementById('tab-details').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+      <div><div class="text-sm text-muted">Document ID</div><div class="fw-600 mt-1">${doc.id}</div></div>
+      <div><div class="text-sm text-muted">Status</div><div class="mt-1">${statusBadge(doc.status)}</div></div>
+      <div><div class="text-sm text-muted">Type</div><div class="fw-600 mt-1">${doc.type}</div></div>
+      <div><div class="text-sm text-muted">Department</div><div class="fw-600 mt-1">${doc.dept}</div></div>
+      <div><div class="text-sm text-muted">Submitter</div><div class="fw-600 mt-1">${doc.submitter}</div></div>
+      <div><div class="text-sm text-muted">Priority</div><div class="mt-1"><span class="priority-badge priority-${doc.priority.toLowerCase()}">${doc.priority}</span></div></div>
+      <div><div class="text-sm text-muted">Submission Date</div><div class="fw-600 mt-1">${doc.date}</div></div>
+      <div><div class="text-sm text-muted">Reviewer</div><div class="fw-600 mt-1">${doc.reviewer || 'Not assigned'}</div></div>
+    </div>
+    <div class="divider"></div>
+    <div class="mb-3"><div class="text-sm text-muted mb-3">Description</div><p style="font-size:13.5px;line-height:1.7;color:var(--text)">${doc.desc}</p></div>
+    ${doc.tags.length ? `<div><div class="text-sm text-muted mb-3">Tags</div><div style="display:flex;gap:6px;flex-wrap:wrap">${doc.tags.map(t=>`<span style="background:#f1f5f9;padding:3px 10px;border-radius:4px;font-size:12px">#${t}</span>`).join('')}</div></div>` : ''}
+    ${doc.file ? `<div class="mt-3"><div class="text-sm text-muted mb-3">Attached File</div><div class="uploaded-file" style="background:#f0f9ff;border-color:#bae6fd"><span class="file-icon">📎</span><span class="file-name">${doc.file}</span><button class="btn btn-outline btn-sm" onclick="showToast('File download started','success')">⬇ Download</button></div></div>` : ''}
+  `;
+
+  // Timeline tab
+  const tlSteps = getDocTimeline(doc);
+  document.getElementById('tab-timeline').innerHTML = `<div class="timeline">${tlSteps.map(s=>`
+    <div class="tl-item">
+      <div class="tl-dot ${s.color}">${s.icon}</div>
+      <div class="tl-content">
+        <strong>${s.title}</strong>
+        <p>${s.desc}</p>
+        <div class="tl-time">${s.time}</div>
+      </div>
+    </div>`).join('')}</div>`;
+
+  // Comments tab
+  const comments = getDocComments(doc);
+  document.getElementById('tab-comments').innerHTML = `
+    ${comments.map(c=>`<div class="comment-box"><div class="comment-author">${c.author} <span style="font-weight:400;color:var(--text-muted)">· ${c.role}</span></div><div class="comment-text">${c.text}</div><div class="comment-time">${c.time}</div></div>`).join('')}
+    <div class="divider"></div>
+    <div class="form-group">
+      <label class="form-label">Add Comment</label>
+      <textarea class="form-textarea" id="newComment" placeholder="Write your comment..." style="min-height:80px"></textarea>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="addComment('${doc.id}')">💬 Post Comment</button>
+  `;
+
+  // Footer actions
+  let footer = `<button class="btn btn-outline" onclick="closeModal('docModal')">Close</button>`;
+  if (['reviewer','approver','admin'].includes(currentRole) && (doc.status === 'Submitted' || doc.status === 'Under Review')) {
+    footer += `<button class="btn btn-success" onclick="closeModal('docModal');openActionModal('${doc.id}','approve')">✅ Approve</button>
+               <button class="btn btn-warning" onclick="closeModal('docModal');openActionModal('${doc.id}','revision')">🔄 Revision</button>
+               <button class="btn btn-danger" onclick="closeModal('docModal');openActionModal('${doc.id}','reject')">❌ Reject</button>`;
+  }
+  document.getElementById('modalFooter').innerHTML = footer;
+
+  // Reset tabs
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+  document.querySelectorAll('.tab-content').forEach((c,i) => c.classList.toggle('active', i===0));
+
+  openModal('docModal');
+}
+
+function getDocTimeline(doc) {
+  const steps = [{ icon:'📝', color:'green', title:'Document Created', desc:`Created by ${doc.submitter}`, time: doc.date + ' 09:00' }];
+  if (doc.status !== 'Draft') steps.push({ icon:'📤', color:'blue', title:'Submitted for Review', desc:`Submitted by ${doc.submitter}`, time: doc.date + ' 09:15' });
+  if (['Under Review','Approved','Rejected','Revision Required'].includes(doc.status)) steps.push({ icon:'🔍', color:'yellow', title:'Under Review', desc:`Assigned to ${doc.reviewer || 'Reviewer'}`, time: doc.date + ' 11:30' });
+  if (doc.status === 'Approved') steps.push({ icon:'✅', color:'green', title:'Approved', desc:`Approved by ${doc.approver || 'Approver'}`, time: doc.date + ' 14:00' });
+  if (doc.status === 'Rejected') steps.push({ icon:'❌', color:'red', title:'Rejected', desc:'Document did not meet compliance standards', time: doc.date + ' 14:00' });
+  if (doc.status === 'Revision Required') steps.push({ icon:'🔄', color:'yellow', title:'Revision Requested', desc:'Reviewer requested changes', time: doc.date + ' 13:00' });
+  return steps;
+}
+
+function getDocComments(doc) {
+  const comments = [];
+  if (doc.status === 'Approved') comments.push({ author: doc.approver || 'Prof. James Carter', role:'Approver', text:'Document reviewed and approved. All compliance requirements met.', time:'2 days ago' });
+  if (doc.status === 'Rejected') comments.push({ author:'Prof. James Carter', role:'Approver', text:'Document rejected due to incomplete supporting documentation. Please resubmit with all required attachments.', time:'3 days ago' });
+  if (doc.status === 'Revision Required') comments.push({ author: doc.reviewer || 'Dr. Sarah Mitchell', role:'Reviewer', text:'Please add the missing appendix section and update the references list before resubmission.', time:'1 day ago' });
+  if (doc.status === 'Under Review') comments.push({ author: doc.reviewer || 'Dr. Sarah Mitchell', role:'Reviewer', text:'Document is currently under review. Initial checks look good.', time:'5 hours ago' });
+  return comments;
+}
+
+function addComment(docId) {
+  const text = document.getElementById('newComment').value;
+  if (!text.trim()) { showToast('Please write a comment first', 'error'); return; }
+  showToast('Comment posted successfully!', 'success');
+  document.getElementById('newComment').value = '';
+}
+
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tabId).classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+//  ACTION MODAL (Approve/Reject/Revision)
+// ══════════════════════════════════════════════
+function openActionModal(docId, action) {
+  currentActionDocId = docId;
+  currentAction = action;
+  const doc = DOCS.find(d => d.id === docId);
+  const titles = { approve:'✅ Approve Document', reject:'❌ Reject Document', revision:'🔄 Request Revision' };
+  const descs = {
+    approve: `You are about to approve "${doc.title}". This action will notify the submitter and archive the document.`,
+    reject: `You are about to reject "${doc.title}". Please provide a reason for rejection.`,
+    revision: `You are requesting revisions for "${doc.title}". Please specify what changes are needed.`
+  };
+  const btnClasses = { approve:'btn-success', reject:'btn-danger', revision:'btn-warning' };
+  document.getElementById('actionModalTitle').textContent = titles[action];
+  document.getElementById('actionModalDesc').textContent = descs[action];
+  document.getElementById('actionConfirmBtn').className = `btn ${btnClasses[action]}`;
+  document.getElementById('actionConfirmBtn').textContent = titles[action];
+  document.getElementById('actionComment').value = '';
+  openModal('actionModal');
+}
+
+function confirmAction() {
+  const doc = DOCS.find(d => d.id === currentActionDocId);
+  const comment = document.getElementById('actionComment').value;
+  const role = ROLES.find(r => r.id === currentRole);
+  if (!doc) return;
+
+  const statusMap = { approve:'Approved', reject:'Rejected', revision:'Revision Required' };
+  const msgMap = {
+    approve: `"${doc.title}" has been approved successfully! ✅`,
+    reject: `"${doc.title}" has been rejected.`,
+    revision: `Revision requested for "${doc.title}".`
+  };
+  const notifMap = {
+    approve: { type:'approval', icon:'✅', title:'Document Approved', msg:`Your "${doc.title}" has been approved by ${role.user}.` },
+    reject: { type:'rejection', icon:'❌', title:'Document Rejected', msg:`Your "${doc.title}" was rejected. ${comment ? 'Reason: '+comment : ''}` },
+    revision: { type:'revision', icon:'🔄', title:'Revision Required', msg:`"${doc.title}" requires revision. ${comment ? comment : ''}` }
+  };
+
+  doc.status = statusMap[currentAction];
+  if (currentAction === 'approve') doc.approver = role.user;
+
+  AUDIT_LOG.unshift({ id: AUDIT_LOG.length+1, ts: new Date().toLocaleString(), user: role.user, role: role.label, action: currentAction.charAt(0).toUpperCase()+currentAction.slice(1), doc: doc.title, ip:'192.168.1.1', detail: comment || 'Action performed' });
+  NOTIFICATIONS.unshift({ id:'N'+(NOTIFICATIONS.length+1), ...notifMap[currentAction], time:'Just now', read:false });
+
+  closeModal('actionModal');
+  showToast(msgMap[currentAction], currentAction === 'approve' ? 'success' : currentAction === 'reject' ? 'error' : 'warning');
+  updateNotifCount();
+  renderNav();
+  if (currentPage === 'approvals') renderApprovals();
+  if (currentPage === 'alldocs') renderAllDocs();
+}
+
+// ══════════════════════════════════════════════
+//  ROLE MODAL
+// ══════════════════════════════════════════════
+function openRoleModal() {
+  document.getElementById('roleOptions').innerHTML = ROLES.map(r => `
+    <div class="role-option ${currentRole===r.id?'selected':''}" onclick="selectRole('${r.id}')">
+      <div class="role-option-icon" style="background:${r.color}22">${r.icon}</div>
+      <div class="role-option-info">
+        <strong>${r.label} — ${r.user}</strong>
+        <span>${r.desc}</span>
+      </div>
+      ${currentRole===r.id ? '<span style="color:var(--accent);font-size:18px">✓</span>' : ''}
+    </div>`).join('');
+  openModal('roleModal');
+}
+
+function selectRole(roleId) {
+  closeModal('roleModal');
+  setRole(roleId);
+  showToast(`Switched to ${ROLES.find(r=>r.id===roleId).label} view`, 'success');
+}
+
+// ══════════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════════
+function exportCSV() {
+  const headers = ['ID','Title','Type','Department','Priority','Status','Submitter','Date'];
+  const rows = DOCS.map(d => [d.id, `"${d.title}"`, d.type, d.dept, d.priority, d.status, d.submitter, d.date]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  downloadCSV(csv, 'documents_export.csv');
+  showToast('Documents exported to CSV!', 'success');
+}
+
+function exportAuditCSV() {
+  const headers = ['ID','Timestamp','User','Role','Action','Document','IP','Details'];
+  const rows = AUDIT_LOG.map(l => [l.id, l.ts, l.user, l.role, l.action, `"${l.doc}"`, l.ip, `"${l.detail}"`]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  downloadCSV(csv, 'audit_log_export.csv');
+  showToast('Audit log exported to CSV!', 'success');
+}
+
+function downloadCSV(csv, filename) {
+  const blob = new Blob([csv], { type:'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function statusBadge(status) {
+  const map = {
+    'Draft':'badge-draft', 'Submitted':'badge-submitted', 'Under Review':'badge-review',
+    'Approved':'badge-approved', 'Rejected':'badge-rejected', 'Revision Required':'badge-revision'
+  };
+  return `<span class="badge ${map[status]||'badge-draft'}">${status}</span>`;
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+
+function showToast(msg, type = 'success') {
+  const icons = { success:'✅', error:'❌', warning:'⚠️' };
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(toast);
+  setTimeout(() => { toast.style.animation = 'slideOut .3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 3500);
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); });
+});
+
+// ══════════════════════════════════════════════
+//  START
+// ══════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
