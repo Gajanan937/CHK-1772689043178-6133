@@ -1,0 +1,142 @@
+-- =========================================
+-- DATABASE CREATE
+-- =========================================
+
+CREATE DATABASE CollegeDB;
+
+-- Database use karna
+USE CollegeDB;
+
+-- =========================================
+-- STUDENT TABLE CREATE
+-- =========================================
+
+CREATE TABLE Student (
+    RollNo INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Age INT,
+    Gender VARCHAR(10),
+    Course VARCHAR(30),
+    City VARCHAR(30),
+    Marks INT
+);
+
+-- =========================================
+-- DATA INSERT
+-- =========================================
+
+INSERT INTO Student VALUES
+(1, 'Aman', 20, 'Male', 'BCA', 'Latur', 85),
+
+(2, 'Sneha', 19, 'Female', 'BSc', 'Pune', 90),
+
+(3, 'Rahul', 21, 'Male', 'BCA', 'Mumbai', 75),
+
+(4, 'Priya', 20, 'Female', 'BCom', 'Nagpur', 88),
+
+(5, 'Rohit', 22, 'Male', 'BSc', 'Latur', 70);
+
+-- =========================================
+-- ALL DATA DISPLAY
+-- =========================================
+
+SELECT * FROM Student;
+
+-- =========================================
+-- SPECIFIC COLUMN DISPLAY
+-- =========================================
+
+SELECT Name, Course FROM Student;
+
+-- =========================================
+-- WHERE CONDITION
+-- =========================================
+
+SELECT * FROM Student
+WHERE Course = 'BCA';
+
+-- =========================================
+-- AND CONDITION
+-- =========================================
+
+SELECT * FROM Student
+WHERE Course = 'BCA'
+AND Marks > 80;
+
+-- =========================================
+-- OR CONDITION
+-- =========================================
+
+SELECT * FROM Student
+WHERE City = 'Latur'
+OR City = 'Pune';
+
+-- =========================================
+-- UPDATE RECORD
+-- =========================================
+
+UPDATE Student
+SET Marks = 95
+WHERE RollNo = 2;
+
+-- =========================================
+-- DELETE RECORD
+-- =========================================
+
+DELETE FROM Student
+WHERE RollNo = 5;
+
+-- =========================================
+-- ORDER BY
+-- =========================================
+
+SELECT * FROM Student
+ORDER BY Marks DESC;
+
+-- =========================================
+-- COUNT FUNCTION
+-- =========================================
+
+SELECT COUNT(*) AS TotalStudents
+FROM Student;
+
+-- =========================================
+-- MAXIMUM MARKS
+-- =========================================
+
+SELECT MAX(Marks) AS HighestMarks
+FROM Student;
+
+-- =========================================
+-- MINIMUM MARKS
+-- =========================================
+
+SELECT MIN(Marks) AS LowestMarks
+FROM Student;
+
+-- =========================================
+-- AVERAGE MARKS
+-- =========================================
+
+SELECT AVG(Marks) AS AverageMarks
+FROM Student;
+
+-- =========================================
+-- LIKE OPERATOR
+-- =========================================
+
+SELECT * FROM Student
+WHERE Name LIKE 'R%';
+
+-- =========================================
+-- CREATE SECOND TABLE
+-- =========================================
+
+CREATE TABLE Department (
+    DeptID INT PRIMARY KEY,
+    DeptName VARCHAR(50),
+    RollNo INT
+);
+
+-- =========================================
+-- INSERT
